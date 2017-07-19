@@ -6841,6 +6841,7 @@ paths:
           in: formData
           description: url
           type: string
+          default: 'http://www.google.com'
         -
           name: ui
           description: file
@@ -6848,6 +6849,22 @@ paths:
           type: file
           format: binary
           required: true
+        -
+          name: actions
+          in: formData
+          description: actions
+          type: array
+          items:
+            type: string
+          default: []
+        -
+          name: data
+          in: formData
+          description: data
+          type: array
+          items:
+            type: string
+          default: []
       responses:
         201:
           description: >-
@@ -7004,6 +7021,8 @@ paths:
 
 # =============================================================================
 definitions:
+  myType:
+    type: object
 
   AuthenticationError:
     properties:

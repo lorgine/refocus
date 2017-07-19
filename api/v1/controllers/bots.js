@@ -11,6 +11,8 @@
  */
 'use strict';
 
+const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
 const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -83,7 +85,35 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBots(req, res, next) {
-    doPost(req, res, next, helper);
+    const reqObj = req.swagger.params;
+    const seqObj = {};
+    try {
+      for (const param in reqObj) {
+        if (reqObj[param].value) {
+          if (typeof (reqObj[param].value) === 'object' &&
+            param === 'library') {
+            handleLensMetadata(reqObj, param, seqObj);
+            seqObj[param] = reqObj[param].value.buffer;
+          } else {
+            seqObj[param] = reqObj[param].value;
+          }
+        }
+      }
+
+      helper.model.create(seqObj)
+        .then((o) => {
+          res.status(httpStatus.CREATED).json(
+            u.responsify(o, helper, req.method)
+          );
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
+    } catch (err) {
+      err.description = 'Invalid library uploaded.';
+      u.handleError(next, err, helper.modelName);
+    }
+    //doPost(req, res, next, helper);
   },
 
   /**
