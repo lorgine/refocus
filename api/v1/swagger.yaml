@@ -28,7 +28,7 @@ info:
   #   url: http://focus.salesforce.com/license
 
 # =============================================================================
-host: localhost:10010
+host: localhost:3000
 
 # =============================================================================
 basePath: /v1
@@ -41,7 +41,6 @@ basePath: /v1
 
 # =============================================================================
 schemes:
-  - https
   - http
 
 # =============================================================================
@@ -6823,37 +6822,32 @@ paths:
       tags: [ bots ]
       description: Create a new bot with a name
       operationId: postBots
+      consumes:
+        - multipart/form-data
       parameters:
         -
-          name: queryBody
-          in: body
+          name: name
+          in: formData
+          description: name
+          type: string
+        -
+          name: active
+          in: formData
+          description: active
+          type: boolean
+          default: false
+        -
+          name: url
+          in: formData
+          description: url
+          type: string
+        -
+          name: ui
+          description: file
+          in: formData
+          type: file
+          format: binary
           required: true
-          schema:
-            type: object
-            description: Create bot properties
-            properties:
-              name:
-                type: string
-                maxLength: 254
-                description: Name of the bot
-              url:
-                type: string
-                description: Bot url
-              active:
-                type: boolean
-                description: If the bot is active
-              actions:
-                type: array
-                description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
-                items:
-                  type: object
-              data:
-                type: array
-                description: Array of objects that contain the name of data on a bot
-                items:
-                  type: object
-            required:
-              - name
       responses:
         201:
           description: >-
@@ -8232,8 +8226,6 @@ definitions:
         type: string
       url:
         type: string
-      ui:
-        type: file
       active:
         type: boolean
       actions:
