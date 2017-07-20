@@ -20,6 +20,20 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const AdmZip = require('adm-zip');
+
+
+function handleLensMetadata(requestObj, libraryParam) {
+  if (requestObj[libraryParam].value.mimetype === 'application/zip') {
+    const zip = new AdmZip(requestObj[libraryParam].value.buffer);
+    const zipEntries = zip.getEntries();
+    for (let i = 0; i < zipEntries.length; i++) {
+
+    console.log(zipEntries[i].entryName);
+    }
+  }
+}
+
 
 module.exports = {
 
@@ -91,8 +105,8 @@ module.exports = {
       for (const param in reqObj) {
         if (reqObj[param].value) {
           if (typeof (reqObj[param].value) === 'object' &&
-            param === 'library') {
-            handleLensMetadata(reqObj, param, seqObj);
+            param === 'ui') {
+            handleLensMetadata(reqObj,param);
             seqObj[param] = reqObj[param].value.buffer;
           } else {
             seqObj[param] = reqObj[param].value;
