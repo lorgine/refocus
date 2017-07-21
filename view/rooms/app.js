@@ -9,10 +9,12 @@
 /**
  * view/rooms/app.js
  *
+ * When page is loaded we take all the bots queried and processed
+ * to have their UI appended to the page.
  *
  */
-import request from 'superagent';
 
+import request from 'superagent';
 import React from 'react';
 import ReactDOM from 'react-dom';
 const AdmZip = require('adm-zip');
@@ -42,57 +44,37 @@ function getPromiseWithUrl(url) {
   });
 } // getPromiseWithUrl
 
-const getLens = getPromiseWithUrl(GET_BOTS)
-    .then((res) => {
-      handleLibraryFiles(res.body[0].ui);
-    });
+/**
+ * Create DOM elements for each of the files in the bots zip.
+ *
+ * @param {Object} bots - The ui buffer saved in the bots ui
+ */
+function parseBots(bots) {
+  // Unzip bots
+  const zip = new AdmZip(new Buffer(bots.data));
+  const zipEntries = zip.getEntries();
 
-function handleLibraryFiles(lib) {
-	console.log(lib);
-const zip = new AdmZip(lib);
-    const zipEntries = zip.getEntry();
-  	console.log(zipEntries);
+  // Get the bots section of the page
+  const botsContainer = document.getElementById('bots');
+  const botContainer = document.createElement('div');
+  const botScript = document.createElement('script');
 
-	console.log(lib.data);
-  	const zip2 = new AdmZip(lib.data);
-    const zipEntries2 = zip2.getEntries();
-
-  	console.log(zipEntries2);
-const LENS_LIBRARY_REX = /(?:\.([^.]+))?$/;
-  //const lensScript = document.createElement('script');
-  for (const filename in lib) {
-  	console.log(filename);
-    const ext = (LENS_LIBRARY_REX.exec(filename)[1] || '').toLowerCase();
-
-  	//console.log(ext);
-   /* if (filename === 'lens.js') {
-      lensScript.appendChild(document.createTextNode(lib[filename]));
-    } else if (ext === 'css') {
-      injectStyleTag(lib, filename);
-    } else if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
-      const image = new Image();
-      image.src = 'data:image/' + ext + ';base64,' + lib[filename];
-      document.body.appendChild(image);
-    } else if (ext === 'js') {
-      const s = document.createElement('script');
-      s.appendChild(document.createTextNode(lib[filename]));
-      document.body.appendChild(s);
-    }*/
+  for (let i = 0; i < zipEntries.length; i++) {
+    if (zipEntries[i].name === 'index.html') {
+      botContainer.innerHTML = zip.readAsText(zipEntries[i]);
+      botsContainer.appendChild(botContainer);
+    } else {
+      botScript.appendChild(
+        document.createTextNode(zip.readAsText(zipEntries[i]))
+      );
+      document.body.appendChild(botScript);
+    }
   }
+} // parseBots
 
-  /*
-   * Note: this 'lens.js' script should always get added as the LAST script
-   * since it may reference things defined in the other scripts.
-   */
-  //document.body.appendChild(lensScript);
-} // handleLibraryFiles
-
-const botsContainer = document.getElementById('bots');
-const botContainer = document.createElement('div');
-botContainer.innerHTML = `<a href="http://google.com/">test</a>`;
-botsContainer.appendChild(botContainer);
-
-const botScript = document.createElement('script');
-botScript.appendChild(document.createTextNode('alert("test");'));
-
-document.body.appendChild(botScript);
+getPromiseWithUrl(GET_BOTS)
+.then((res) => {
+  for (let i = 0; i < res.body.length; i++) {
+    parseBots(res.body[i].ui);
+  }
+});
